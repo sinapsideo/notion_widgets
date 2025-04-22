@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Progresso do Período</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* Apply Inter font globally */
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        /* Custom styles for the progress bar track and fill */
+        .progress-bar-track {
+            background-color: #e5e7eb; /* gray-200 */
+        }
+        .progress-bar-fill {
+            background-color: #3b82f6; /* blue-500 */
+            transition: width 0.5s ease-in-out; /* Smooth transition for width changes */
+        }
+    </style>
+</head>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen p-4">
+    <div class="bg-white p-6 rounded-lg shadow-lg w-full max-w-sm">
+        <h2 class="text-lg font-semibold text-gray-700 mb-1 text-center">FIM DA GO HC-UFG 🤰</h2>
+        <p class="text-xs text-gray-500 mb-4 text-center">Período: 21/Abr - 23/Mai</p>
+
+        <div class="w-full progress-bar-track rounded-full h-4 mb-2 overflow-hidden">
+            <div id="progressBarFill" class="progress-bar-fill h-full rounded-full" style="width: 0%;"></div>
+        </div>
+
+        <p id="progressText" class="text-sm font-medium text-blue-600 text-center">Calculando...</p>
+    </div>
+
+    <script>
+        // Function to calculate and update the progress
+        function updateProgress() {
+            // --- Configuration ---
+            const startDate = new Date(new Date().getFullYear(), 3, 21); // April 20th (Month is 0-indexed, so 3 = April)
+            const endDate = new Date(new Date().getFullYear(), 4, 23);   // May 23rd (Month is 0-indexed, so 4 = May)
+            const currentDate = new Date();
+
+            // --- Calculations ---
+            // Calculate total days in the period (inclusive)
+            const totalTime = endDate.getTime() - startDate.getTime();
+            const totalDays = Math.ceil(totalTime / (1000 * 60 * 60 * 24)) + 1; // Add 1 to include the end date
+
+            // Calculate days passed since the start date (inclusive)
+            let timePassed = currentDate.getTime() - startDate.getTime();
+            let daysPassed = 0;
+
+            if (timePassed < 0) {
+                // If current date is before start date, progress is 0
+                daysPassed = 0;
+            } else {
+                // Calculate days passed, adding 1 to include the start date
+                daysPassed = Math.ceil(timePassed / (1000 * 60 * 60 * 24)) + 1;
+            }
+
+            // Calculate percentage, ensuring it's between 0 and 100
+            let percentage = 0;
+            if (totalDays > 0) {
+                percentage = (daysPassed / totalDays) * 100;
+            }
+            percentage = Math.max(0, Math.min(100, percentage)); // Clamp between 0 and 100
+
+            // --- DOM Updates ---
+            // Get elements
+            const progressBarFill = document.getElementById('progressBarFill');
+            const progressText = document.getElementById('progressText');
+
+            // Update progress bar width
+            if (progressBarFill) {
+                progressBarFill.style.width = percentage.toFixed(2) + '%';
+            }
+
+            // Update progress text
+            if (progressText) {
+                progressText.textContent = percentage.toFixed(2) + '% concluído';
+            }
+        }
+
+        // --- Initialization ---
+        // Run the update function when the DOM is fully loaded
+        document.addEventListener('DOMContentLoaded', updateProgress);
+
+        // Optional: Update progress periodically (e.g., every hour) if needed,
+        // though for a daily progress, running once on load is usually sufficient.
+        // setInterval(updateProgress, 1000 * 60 * 60); // Update every hour
+    </script>
+</body>
+</html>
