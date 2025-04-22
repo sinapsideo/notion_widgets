@@ -69,12 +69,12 @@
             // Update progress bar width
             if (progressBarFill) {
                 // Use toFixed(4) or more for smoother visual updates when updating frequently
-                progressBarFill.style.width = percentage.toFixed(4) + '%';
+                progressBarFill.style.width = percentage.toFixed(2) + '%';
             }
 
             // Update progress text
             if (progressText) {
-                progressText.textContent = percentage.toFixed(4) + '% concluído';
+                progressText.textContent = percentage.toFixed(2) + '% concluído';
             }
 
             // Optional: Calculate and display time remaining
