@@ -17,77 +17,94 @@
         }
         .progress-bar-fill {
             background-color: #3b82f6; /* blue-500 */
-            transition: width 0.5s ease-in-out; /* Smooth transition for width changes */
+            transition: width 0.5s linear; /* Smooth transition for width changes - use linear for smoother feel */
         }
     </style>
 </head>
 <body class="bg-gray-100 flex items-center justify-center min-h-screen p-4">
     <div class="bg-white p-6 rounded-lg shadow-lg w-full max-w-sm">
         <h2 class="text-lg font-semibold text-gray-700 mb-1 text-center">FIM DA GO HC-UFG 🤰</h2>
-        <p class="text-xs text-gray-500 mb-4 text-center">Período: 21/Abr - 23/Mai</p>
+        <p class="text-xs text-gray-500 mb-4 text-center">Período: 21/Abr 00:00 - 23/Mai 19:00</p>
 
         <div class="w-full progress-bar-track rounded-full h-4 mb-2 overflow-hidden">
             <div id="progressBarFill" class="progress-bar-fill h-full rounded-full" style="width: 0%;"></div>
         </div>
 
         <p id="progressText" class="text-sm font-medium text-blue-600 text-center">Calculando...</p>
+        <p id="timeLeftText" class="text-xs text-gray-500 mt-1 text-center"></p> <!-- Optional: Add element for time left -->
     </div>
 
     <script>
         // Function to calculate and update the progress
         function updateProgress() {
             // --- Configuration ---
-            const startDate = new Date(new Date().getFullYear(), 3, 21); // April 20th (Month is 0-indexed, so 3 = April)
-            const endDate = new Date(new Date().getFullYear(), 4, 23);   // May 23rd (Month is 0-indexed, so 4 = May)
-            const currentDate = new Date();
+            const currentYear = new Date().getFullYear();
+            // Start Date: April 21st, 00:00:00
+            const startDate = new Date(currentYear, 3, 21, 0, 0, 0, 0); // Month is 0-indexed (3 = April)
+            // End Date: May 23rd, 19:00:00
+            const endDate = new Date(currentYear, 4, 23, 19, 0, 0, 0); // Month is 0-indexed (4 = May), Hour = 19
+            const now = new Date(); // Get current date and time inside the function for accuracy
 
             // --- Calculations ---
-            // Calculate total days in the period (inclusive)
-            const totalTime = endDate.getTime() - startDate.getTime();
-            const totalDays = Math.ceil(totalTime / (1000 * 60 * 60 * 24)) + 1; // Add 1 to include the end date
+            // Total duration of the period in milliseconds
+            const totalDurationMs = endDate.getTime() - startDate.getTime();
 
-            // Calculate days passed since the start date (inclusive)
-            let timePassed = currentDate.getTime() - startDate.getTime();
-            let daysPassed = 0;
+            // Time elapsed since the start date in milliseconds
+            const elapsedMs = now.getTime() - startDate.getTime();
 
-            if (timePassed < 0) {
-                // If current date is before start date, progress is 0
-                daysPassed = 0;
-            } else {
-                // Calculate days passed, adding 1 to include the start date
-                daysPassed = Math.ceil(timePassed / (1000 * 60 * 60 * 24)) + 1;
-            }
-
-            // Calculate percentage, ensuring it's between 0 and 100
+            // Calculate percentage
             let percentage = 0;
-            if (totalDays > 0) {
-                percentage = (daysPassed / totalDays) * 100;
+            if (totalDurationMs > 0) { // Avoid division by zero
+                percentage = (elapsedMs / totalDurationMs) * 100;
             }
-            percentage = Math.max(0, Math.min(100, percentage)); // Clamp between 0 and 100
+
+            // Clamp percentage between 0 and 100
+            percentage = Math.max(0, Math.min(100, percentage));
 
             // --- DOM Updates ---
-            // Get elements
             const progressBarFill = document.getElementById('progressBarFill');
             const progressText = document.getElementById('progressText');
+            const timeLeftText = document.getElementById('timeLeftText'); // Get the new element
 
             // Update progress bar width
             if (progressBarFill) {
-                progressBarFill.style.width = percentage.toFixed(2) + '%';
+                // Use toFixed(4) or more for smoother visual updates when updating frequently
+                progressBarFill.style.width = percentage.toFixed(4) + '%';
             }
 
             // Update progress text
             if (progressText) {
-                progressText.textContent = percentage.toFixed(2) + '% concluído';
+                progressText.textContent = percentage.toFixed(4) + '% concluído';
+            }
+
+            // Optional: Calculate and display time remaining
+            if (timeLeftText) {
+                let remainingMs = endDate.getTime() - now.getTime();
+                if (remainingMs < 0) remainingMs = 0; // Don't show negative time
+
+                const seconds = Math.floor((remainingMs / 1000) % 60);
+                const minutes = Math.floor((remainingMs / (1000 * 60)) % 60);
+                const hours = Math.floor((remainingMs / (1000 * 60 * 60)) % 24);
+                const days = Math.floor(remainingMs / (1000 * 60 * 60 * 24));
+
+                if (percentage >= 100) {
+                     timeLeftText.textContent = "Período finalizado!";
+                } else if (percentage <= 0 && elapsedMs < 0){ // Check if we are before the start date
+                     timeLeftText.textContent = "Período ainda não iniciado.";
+                } else {
+                     timeLeftText.textContent = `Tempo restante: ${days}d ${hours}h ${minutes}m ${seconds}s`;
+                }
             }
         }
 
-        // --- Initialization ---
-        // Run the update function when the DOM is fully loaded
-        document.addEventListener('DOMContentLoaded', updateProgress);
+        // --- Initialization & Updates ---
+        // Run the update function immediately when the script loads
+        updateProgress();
 
-        // Optional: Update progress periodically (e.g., every hour) if needed,
-        // though for a daily progress, running once on load is usually sufficient.
-        // setInterval(updateProgress, 1000 * 60 * 60); // Update every hour
+        // Update the progress every second (1000 milliseconds)
+        // This will make the percentage decimals change constantly and show hourly changes promptly
+        setInterval(updateProgress, 1000);
+
     </script>
 </body>
 </html>
